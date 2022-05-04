@@ -8,5 +8,11 @@ import type { Item } from "../data/Item";
 </script>
 
 
-<div>{item.id} Here is another item, {item.desc} + {item.value}</div>
-<button on:click={()=>remove(item.id)}>Remove</button>
+<tr>
+    <td>
+        <div>{item.id} Here is another item, {item.desc} + {item.value}</div>
+    </td>
+    <td>
+        <button on:click={()=>remove(item.id)}>Remove</button>
+    </td>
+</tr>

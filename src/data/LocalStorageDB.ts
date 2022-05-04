@@ -1,33 +1,45 @@
-import { DatabaseItem } from "./DatabaseItem";
-import type { Item } from "./Item";
+import { DatabaseID, DatabaseItem } from "./DatabaseItem";
+import { Item } from "./Item";
 
-export class LocalStorageDB {
-    public static KEY_ITEMS = "TR_ITEMS" as const;
-    public static KEY_COUNTER = "TR_ITEMS" as const;
+export const KEY_ITEMS = "TR_ITEMS";
+export const KEY_COUNTER = "TR_ITEMS_COUNTER";
+import { Readable, readable, writable, Writable } from "svelte/store";
 
-    public dbItems: DatabaseItem[];
-    public counter: number;
+let counter: number;
 
-    constructor() {
-        try {
-            const itemstring = localStorage.getItem(LocalStorageDB.KEY_ITEMS)??'[]';
-            const counterString = localStorage.getItem(
-                LocalStorageDB.KEY_COUNTER
-            )??'0';
+let dbItems = [];
+// let counter=0;
+try {
+    const itemstring = localStorage.getItem(KEY_ITEMS) ?? "[]";
+    const counterString = localStorage.getItem(KEY_COUNTER) ?? "0";
 
-            this.dbItems = JSON.parse(itemstring) as DatabaseItem[];
-            this.counter = Number.parseInt(counterString);
-        } catch {
-            this.dbItems=[];
-            this.counter=0;
-            console.log("Did not find anything on localStorage, creating new");
-        }
-    }
+    dbItems = JSON.parse(itemstring) as DatabaseItem[];
+    counter = Number.parseInt(counterString);
+} catch {
+    counter = 0;
+    console.log("Did not find anything on localStorage, creating new");
+}
 
-    insert(item:Item){
-        this.dbItems = [...this.dbItems,DatabaseItem.fromItem(this.counter++,item)];
-    }
-    getItems(){
-        return this.dbItems??[];
-    }
+export const store: Writable<DatabaseItem[]> = writable([], () => {
+    return () => {};
+});
+
+export function insertItem(item: Item) {
+    store.update((items) => {
+        const newItems = [...items, DatabaseItem.fromItem(counter++, item)];
+        localStorage.setItem(KEY_ITEMS, JSON.stringify(newItems));
+        localStorage.setItem(KEY_ITEMS, counter.toString());
+        return newItems;
+    });
+}
+export function remove(id: DatabaseID) {
+    store.update((items) => {
+        const newItems = items.filter((item) => item.id !== id);
+        localStorage.setItem(KEY_ITEMS, JSON.stringify(newItems));
+        localStorage.setItem(KEY_ITEMS, counter.toString());
+        return newItems;
+    });
+}
+export function insert(value: number, desc: string = "") {
+    return insertItem(new Item(Math.random(), desc));
 }
